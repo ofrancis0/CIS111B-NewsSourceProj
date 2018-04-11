@@ -81,7 +81,7 @@ public class NewsAPItoSQL
         try {
             // DON'T FORGET to update this line to indicate active user name and password
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/news_test",
-                    "chrissa", "LaP0r#e!");
+                    "user", "password");
 
             // create a PreparedStatement object to send "insert row" statement to MySQL
             // initially had it in the loop but pulled it out of the loop
