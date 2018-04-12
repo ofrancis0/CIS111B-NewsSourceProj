@@ -19,16 +19,16 @@ public class MySqlConnOverSSH2 {
 	 */
    public static void main(String[] args) throws SQLException {
    
-      int lport=3306;
-      String rhost="104.131.100.240";
+      int lport=3305;
+      String rhost="127.0.0.1";
       String host="104.131.100.240";
       int rport=3306;
       String user="chrissa";
       String password="LaP0r#e!";
       String dbuserName = "chrissa";
       String dbpassword = "LaP0r#e!";
-      String url = "jdbc:mysql://104.131.100.240:"+lport+"/news_test";
-      String driverName="com.mysql.jdbc.Driver";
+      String url = "jdbc:mysql://127.0.0.1:"+lport+"/news_test";
+      String driverName="com.mysql.cj.jdbc.Driver";
       Connection conn = null;
       Session session= null;
       try{
