@@ -28,7 +28,7 @@ public class MySqlConnOverSSH2 {
       String dbuserName = "chrissa";
       String dbpassword = "LaP0r#e!";
       String url = "jdbc:mysql://127.0.0.1:"+lport+"/news_test";
-      String driverName="com.mysql.cj.jdbc.Driver";
+      String driverName="com.mysql.jdbc.Driver";
       Connection conn = null;
       Session session= null;
       try{
