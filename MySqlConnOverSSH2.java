@@ -19,14 +19,14 @@ public class MySqlConnOverSSH2 {
 	 */
    public static void main(String[] args) throws SQLException {
    
-      int lport=3305;
+      int lport=1;
       String rhost="127.0.0.1";
-      String host="104.131.100.240";
-      int rport=3306;
-      String user="chrissa";
-      String password="LaP0r#e!";
-      String dbuserName = "chrissa";
-      String dbpassword = "LaP0r#e!";
+      String host="digitalocean";
+      int rport=1;
+      String user="XXXXX";
+      String password="XXXXX";
+      String dbuserName = "XXXXX";
+      String dbpassword = "XXXXX";
       String url = "jdbc:mysql://127.0.0.1:"+lport+"/news_test";
       String driverName="com.mysql.jdbc.Driver";
       Connection conn = null;
@@ -45,7 +45,7 @@ public class MySqlConnOverSSH2 {
          System.out.println("localhost:"+assinged_port+" -> "+rhost+":"+rport);
          System.out.println("Port Forwarded");
        	
-       	//mysql database connectivity
+       	//database connectivity
          Class.forName(driverName).newInstance();
          conn = DriverManager.getConnection (url, dbuserName, dbpassword);
          System.out.println ("Database connection established");
