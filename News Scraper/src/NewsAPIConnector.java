@@ -59,34 +59,6 @@ public class NewsAPIConnector
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
-	// Accessor and Mutator Methods
-	//------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * The getPageNumber method returns an int containing the current value of the pageNumber field, which is
-	 * intended to track what page of JSON output the class is currently calling.
-	 *
-	 *@return An int containing the value of the current pageNumber field.
-	 */
-	
-	public int getPageNumber()
-	{
-		return pageNumber;
-	}
-	
-	/**
-	 * The setPageNumber method accepts an int argument, and replaces the current value of the pageNumber field,
-	 * which is intended to track what page of JSON output the class is currently calling.
-	 *
-	 *@param pn The new page number for JSON output.
-	 */
-	
-	public void setPageNumber(int pn)
-	{
-		pageNumber = pn;
-	}
-	
-	//------------------------------------------------------------------------------------------------------------
 	// Helper Methods
 	//------------------------------------------------------------------------------------------------------------
 	
