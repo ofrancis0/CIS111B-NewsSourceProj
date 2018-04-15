@@ -1,9 +1,9 @@
-import com.google.gson.*;
-
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
+
+import com.google.gson.*;
 
 /**
  * <h1>News API Connector</h1>
@@ -164,6 +164,35 @@ public class NewsAPIConnector
 		url += "&apiKey=" + API_KEY;
 	}
 	
+	
+	/**
+	 * The connect method establishes a connection to newsAPI based on the current url field
+	 * and returns an InputStreamReader to read newsAPI's Json output.
+	 * 
+	 * @return An InputStreamReader to read from the current url field.
+	 */
+	
+	public InputStreamReader connect()
+	{	
+		//Use Try/Catch to Handle Possible IOException
+		try
+		{
+			//Open Connection
+			URL newsURL  = new URL(url);
+			URLConnection newsConnection = newsURL.openConnection();
+						
+			//Initialize InputStreamReader
+			InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream());
+			
+			return newsReader;
+		}
+		catch(IOException e)
+		{
+			//Return null if Exception is thrown
+			return null;
+		}
+	}
+	
 	/**
 	 * The getArticleArray method returns a JsonArray of Articles based on the NewsAPIConnection
 	 * object's current url field.
@@ -171,27 +200,62 @@ public class NewsAPIConnector
 	 *@return A JsonArray populated by articles from newsAPI based on the current url field.
 	 */
 	
-	public JsonArray getArticleArray() throws Exception
-	{
-		//This method needs to be updated to assess and handle connection status
-		//Also to "flip" JSON pages, which will replace getPageNumber and setPageNumber
-		//Should also return array of article objects, not jsonArray
+	public Article[] getArticleArray()
+	{		
+		//Create InputStreamReader from current url with connect method
+		InputStreamReader newsReader = this.connect();
 		
-		//Open Connection
-		URL newsURL  = new URL(url);
-		URLConnection newsConnection = newsURL.openConnection();
-				
-		//Initialize InputStreamReader
-		InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream());
-				
-		//Use Gson classes to read json from source
+		//Use Gson classes to read JSON from source
+		//Use connect Method to receive InputStreamReader from current url field
 		JsonParser newsParser = new JsonParser();
-		JsonObject jsObject = newsParser.parse(newsReader).getAsJsonObject();
-				
-		//Create Array using Gson of Articles
-		JsonArray returnArray = jsObject.get("articles").getAsJsonArray();
+		JsonObject jsonObject = newsParser.parse(newsReader).getAsJsonObject();
 		
-		//Return JsonArray
+		//Close InputStreamReader
+		newsReader.close();
+				
+		//Parse "Total Results" to determine how many page "flips" are necessary for this query
+		//PageFlips = Number of Pages at 100 Results Each. Round Up for Integer Division
+		int totalResults = jsonObject.get("totalResults").getAsInt();
+		int pageFlips;
+		if(totalResults % 100 == 0)
+			pageFlips = totalResults / 100;
+		else
+			pageFlips = totalResults / 100 + 1;
+		
+		//Create JsonArray of Articles from first Page
+		JsonArray jsonArray = jsonObject.get("articles").getAsJsonArray();
+		
+		//Add each Page of JSON output from NewsAPI to jsonArray
+		for(pageNumber = 2; pageNumber <= pageFlips; pageNumber++)
+		{
+			//Get JsonObject of current page
+			//Use udpateURL method to update pageNumber in url, and connect to renew connection
+			this.updateURL();
+			InputStreamReader loopReader = this.connect();
+			JsonObject loopObject = newsParser.parse(loopReader).getAsJsonObject();
+			
+			//Create new JsonArray from new JsonObject's Articles
+			JsonArray loopArray = loopObject.get("articles").getAsJsonArray();
+			
+			//Add all JsonElements from current iteration to original JsonArray
+			jsonArray.addAll(loopArray);
+			
+			//Close this iteration's InputStreamReader
+			loopReader.close();
+		}
+		
+		//Reset pageNumber to 1 for next method call.
+		pageNumber = 1;
+		
+		//Instantiate Article Array to hold each Article
+		Article[] returnArray = new Article[totalResults];
+		
+		//Use Article class's JsonElement arg constructor to instantiate Article objects
+		//Populate returnArray with said Article objects
+		for(int index = 0; index < totalResults; index++)
+			returnArray[index] = new Article(jsonArray.get(index));
+		
+		//Return resulting array of Article Objects
 		return returnArray;
 	}
 		
