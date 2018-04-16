@@ -10,7 +10,7 @@ import com.google.gson.*;
  * The NewsAPIConnector class contains constructors and methods for connecting to NewsAPI
  * and returning arrays of JSON Elements that represent individual news articles. 
  *
- *@author Aaron Wile
+ *@author Aaron Wile, Chrissa LaPorte, Oriel Francis
  *@since 13 April 2018
  */
 
@@ -21,14 +21,13 @@ public class NewsAPIConnector
 	//------------------------------------------------------------------------------------------------------------
 	
 	private final String API_KEY = "19f78480cff94fc3bcebcdc57d3c5c70";
-	private final String URL_BASE = "http://newsapi.org/v2/everything?sources=";
+	private final String URL_BASE = "http://newsapi.org/v2/everything?language=en&sources=";
 	
-	private final String[] SOURCES = {"abc-news", "associated-press", "bbc-news",
-							  "breitbart-news", "business-insider", "cbs-news",
-							  "cnbc", "cnn", "fox-news", "msnbc", "nbc-news",
-							  "newsweek", "politico", "the-economist",
-							  "the-huffington-post", "the-new-york-times",
-							  "the-wall-street-journal", "the-washington-post", "time" };
+	private final String[] SOURCES = {"abc-news", "associated-press", "bbc-news", "bloomberg", "breitbart-news", 
+									  "business-insider", "cnbc", "cnn", "fortune", "fox-news", 
+									  "msnbc", "newsweek", "politico", "reuters", "the-economist", 
+									  "the-huffington-post", "the-new-york-times", "the-wall-street-journal", 
+									  "the-washington-post", "usa-today"};
 	
 	private String url, currentTimeStamp, previousTimeStamp;
 	private int pageNumber;
@@ -75,7 +74,7 @@ public class NewsAPIConnector
 		//Create a SimpleDateFormat object with formatting settings for ISO 8601
 		//Format: "2018-04-13T06:23:00" 
 		//Set the TimeZone to UTC with TimeZone class
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 		TimeZone tz = TimeZone.getTimeZone("UTC");
 		dateFormat.setTimeZone(tz);
 		
@@ -183,8 +182,12 @@ public class NewsAPIConnector
 		JsonObject jsonObject = newsParser.parse(newsReader).getAsJsonObject();
 		
 		//Close InputStreamReader
+		try
+		{
 		newsReader.close();
-				
+		}
+		catch(IOException e){}
+		
 		//Parse "Total Results" to determine how many page "flips" are necessary for this query
 		//PageFlips = Number of Pages at 100 Results Each. Round Up for Integer Division
 		int totalResults = jsonObject.get("totalResults").getAsInt();
@@ -197,6 +200,7 @@ public class NewsAPIConnector
 		//Create JsonArray of Articles from first Page
 		JsonArray jsonArray = jsonObject.get("articles").getAsJsonArray();
 		
+
 		//Add each Page of JSON output from NewsAPI to jsonArray
 		for(pageNumber = 2; pageNumber <= pageFlips; pageNumber++)
 		{
@@ -213,9 +217,13 @@ public class NewsAPIConnector
 			jsonArray.addAll(loopArray);
 			
 			//Close this iteration's InputStreamReader
+			try
+			{
 			loopReader.close();
+			}
+			catch(IOException e){}
 		}
-		
+
 		//Reset pageNumber to 1 for next method call.
 		pageNumber = 1;
 		
