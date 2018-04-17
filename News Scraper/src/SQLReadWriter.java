@@ -91,10 +91,10 @@ public class SQLReadWriter
 	public Connection remoteConnect()
 	{
 
-		int lport=3305;
+		int lport=1;
 		String rhost="127.0.0.1";
-		String host="104.131.100.240";
-		int rport=3306;
+		String host="digitalocean";
+		int rport=1;
 		String serverUser="XXXXX";
 		String serverPassword="XXXXX";
 		String url = "jdbc:mysql://127.0.0.1:"+lport+databaseName;
@@ -128,7 +128,7 @@ public class SQLReadWriter
 
 		return connRemote;
 
-		//will need to close the connection and disconnect from the session
+		// for remote server connection will need to 1) close the connection & 2) disconnect from the session
 	}
 
 	
@@ -140,29 +140,37 @@ public class SQLReadWriter
 	 * The readArticle method reads a line from the SQL Database table and returns an Article object with fields
 	 * initialized to the data from the table.
 	 * 
-	 * @return An Article Object representing the article from the table.
+	 * @return A List of Article Objects representing the articles from the table.
 	 */
 	
-	public Set readArticle(String tableName)
+	public List<Article> readArticle(String tableName)
 	{
-		//Call to connect method
-		Set <Article> articles = new HashSet<Article>();
 
+		// create a list of Article objects to hold each of the articles from the database
+		List <Article> articlesInDB = new ArrayList<>();
+
+		// connect to Database
 		try {
 			Connection conn1 = connect();
+			// create Statement Object
 			Statement stmt = conn1.createStatement();
+			// Create a ResultSet Object (to hold the results from the query) and execute the query
+			// in this instance the query retrieves all of the columns (SELECT *) and rows from the table
 			ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
 
-
-			if (rs.next())
+			// loop through the contents of the result set
+			// this means that you go through each of the rows individually in the database
+			while (rs.next())
 			{
-				// a no-arg constructor will work fine!
+				// I acted as if there were a no-arg constructor in the Article class
+				// and used the individual set methods for each of the data fields
 				Article row = new Article();
 				row.setTitle(rs.getString("title"));
 				row.setSource( rs.getString("source"));
 				row.setDate( rs.getString("date"));
 				row.setUrl( rs.getInt("url"));
-				articles.add(row);
+				// add the new Article object (row) to the List of articles
+				articlesInDB.add(row);
 			}
 
 
@@ -172,7 +180,7 @@ public class SQLReadWriter
 			ex.printStackTrace();
 		}
 
-		return articles;
+		return articlesInDB;
 	}
 	
 	/**
