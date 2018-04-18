@@ -65,7 +65,6 @@ public class SQLReadWriter
 		try {
 			Class.forName(DRIVERNAME).newInstance();
 			conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-			System.out.println("Connected to local database");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -143,17 +142,16 @@ public class SQLReadWriter
 	 * @return A List of Article Objects representing the articles from the table.
 	 */
 	
-	public List<Article> readArticle(String tableName)
+	public ArrayList<Article> readArticle(String tableName, Connection conn)
 	{
 
 		// create a list of Article objects to hold each of the articles from the database
-		List <Article> articlesInDB = new ArrayList<>();
+		ArrayList <Article> articlesInDB = new ArrayList<>();
 
 		// connect to Database
 		try {
-			Connection conn1 = connect();
 			// create Statement Object
-			Statement stmt = conn1.createStatement();
+			Statement stmt = conn.createStatement();
 			// Create a ResultSet Object (to hold the results from the query) and execute the query
 			// in this instance the query retrieves all of the columns (SELECT *) and rows from the table
 			ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
@@ -166,9 +164,9 @@ public class SQLReadWriter
 				// and used the individual set methods for each of the data fields
 				Article row = new Article();
 				row.setTitle(rs.getString("title"));
-				row.setSource( rs.getString("source"));
-				row.setDate( rs.getString("date"));
-				row.setUrl( rs.getInt("url"));
+				row.setSource( rs.getString("sources"));
+				row.setDate( rs.getString("pubdate"));
+				row.setURL( rs.getString("url"));
 				// add the new Article object (row) to the List of articles
 				articlesInDB.add(row);
 			}
@@ -188,13 +186,10 @@ public class SQLReadWriter
 	 * It also accepts as a String the name of the table into which the data is to be inserted.
 	 */
 	
-	public void writeArticle(Article article, String tableName)
+	public void writeArticle(Article article, String tableName, Connection conn)
 	{
 		try
 		{
-
-			//Call to connect method
-			Connection conn2 = connect();
 
 			// create a PreparedStatement object to send "insert row" statement to MySQL
 			PreparedStatement insertRow = null;
@@ -203,30 +198,26 @@ public class SQLReadWriter
 			// I plan to create a unique index on url so that it must be unique
 			// "INSERT IGNORE" allows SQL to keep inserting rows (and just ignores duplicates)
 			String sqlStatement = "INSERT IGNORE INTO" + " " + tableName +
-					"(title, source, date, url) " +
+					"(title, sources, pubdate, url) " +
 					"Values"
 					+ "(?,?,?,?)";
 
 			// prepare the statement
-			insertRow = conn2.prepareStatement(sqlStatement);
-
+			insertRow = conn.prepareStatement(sqlStatement);
 
 			//Code to Convert Article's Fields to acceptable SQL Format
 			//Code to Get an Article's Fields
 			// set each of the parameters for the sqlStatement
 			insertRow.setString(1, article.getTitle());
 			insertRow.setString(2, article.getSource());
-			insertRow.setDate(3, article.getDate());
-			insertRow.setString(4,article.getUrl());
+			insertRow.setString(3, article.getDate());
+			insertRow.setString(4,article.getURL());
 
 			// Execute the Prepared Statement
 			insertRow.execute();
 
 			// close the Prepared Statement
 			insertRow.close();
-
-			// close the connection to the local database
-			conn2.close();
 
 		}
 		catch (Exception ex)
@@ -235,8 +226,6 @@ public class SQLReadWriter
 		}
 
 	}
-
-
 	
 	/**
 	 * The writeArticleWithTopic method accepts an Article Object argument and writes its data to the
@@ -245,24 +234,20 @@ public class SQLReadWriter
 	 *
 	 */
 	
-	public void writeArticleWithTopic(Article article, String tableName)
+	public void writeArticleWithTopic(Article article, String tableName, Connection conn)
 	{
 		try {
-
-			//Call to connect method
-			Connection conn2 = connect();
-
 			// create a PreparedStatement object to send "insert row" statement to MySQL
 			PreparedStatement insertRow = null;
 			// define the string for the insert row query
 			// use ? to indicate the parameters to be inserted (total of 5 parameters)
 			String sqlStatement = "INSERT IGNORE INTO" + " " + tableName +
-					"(title, source, date, url, topic) " +
+					"(title, sources, pubdate, url, topic) " +
 						"Values"
 						+ "(?,?,?,?,?)";
 
 				// prepare the statement
-				insertRow = conn2.prepareStatement(sqlStatement);
+				insertRow = conn.prepareStatement(sqlStatement);
 
 
 				//Code to Convert Article's Fields to acceptable SQL Format
@@ -270,8 +255,8 @@ public class SQLReadWriter
 				// set each of the parameters for the sqlStatement
 				insertRow.setString(1, article.getTitle());
 				insertRow.setString(2, article.getSource());
-				insertRow.setDate(3, article.getDate());
-				insertRow.setString(4,article.getUrl());
+				insertRow.setString(3, article.getDate());
+				insertRow.setString(4,article.getURL());
 				insertRow.setString(5, article.getTopic());
 
 				// Execute the Prepared Statement
@@ -279,9 +264,6 @@ public class SQLReadWriter
 
 				// close the Prepared Statement
 				insertRow.close();
-
-				// close the connection to the local database
-				conn2.close();
 
 			}
 			catch (Exception ex)
@@ -296,41 +278,35 @@ public class SQLReadWriter
 	 * @param article Article object
 	 * @param tableName Name of the table in the database
 	 */
-	public void addArticleTopic (Article article, String tableName)
+	public void addArticleTopic (Article article, String tableName, Connection conn)
 	{
 		try {
-
-			//Call to connect method
-			Connection conn2 = connect();
-
+			
 			// create a PreparedStatement object to send "insert row" statement to MySQL
 			PreparedStatement updateRow = null;
 			// define the string for the insert row query
 			// use ? to indicate the parameters
 
 
-			String sqlStatement = "UPDATE" + " " + tableName +
-					"SET topic = ? WHERE url = ? ";
+			String sqlStatement = "UPDATE " + tableName +
+					" SET topic = ? WHERE url = ? ";
 
 
 			// prepare the statement
-			updateRow = conn2.prepareStatement(sqlStatement);
+			updateRow = conn.prepareStatement(sqlStatement);
 
 
 			//Code to Convert Article's Fields to acceptable SQL Format
 			//Code to Get an Article's Fields
 			// set each of the parameters for the sqlStatement
 			updateRow.setString(1, article.getTopic());
-			updateRow.setString(2, article.getUrl());
+			updateRow.setString(2, article.getURL());
 
 			// Execute the Prepared Statement
 			updateRow.execute();
 
 			// close the Prepared Statement
 			updateRow.close();
-
-			// close the connection to the local database
-			conn2.close();
 
 		}
 		catch (Exception ex)

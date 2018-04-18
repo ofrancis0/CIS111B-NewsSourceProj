@@ -19,7 +19,7 @@ public class NewsAPIConnector
 	//------------------------------------------------------------------------------------------------------------
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
-	
+
 	private final String API_KEY = "19f78480cff94fc3bcebcdc57d3c5c70";
 	private final String URL_BASE = "http://newsapi.org/v2/everything?language=en&sources=";
 	
@@ -58,7 +58,7 @@ public class NewsAPIConnector
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
-	// Helper Methods
+	// Field Update Methods
 	//------------------------------------------------------------------------------------------------------------
 	
 	/**
@@ -135,6 +135,9 @@ public class NewsAPIConnector
 		url += "&apiKey=" + API_KEY;
 	}
 	
+	//------------------------------------------------------------------------------------------------------------
+	// Connection and Input Reader Methods
+	//------------------------------------------------------------------------------------------------------------
 	
 	/**
 	 * The connect method establishes a connection to newsAPI based on the current url field
