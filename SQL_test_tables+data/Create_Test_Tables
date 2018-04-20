@@ -1,0 +1,26 @@
+/*
+   @author Chrissa
+   STEP 1: CREATE TWO TEST TABLES
+   This document includes a scripts to create two dummy tables (dummy_article and dummy_topic),
+   so that we can test functionality of MySQL and PHP using a clean set of data. The structure of the
+   two tables parallels that of the "real" tables for our project (or at least as it stands now!).
+   Create the tables first! And then use the scripts in "Insert_Test_Data" to insert data
+   into the two tables once you have created them.
+
+   Another note: I used the same database for these tables as the database we're currently using,
+   if we want to keep our test data more separate, we create a database solely for testing.
+*/
+
+CREATE TABLE IF NOT EXISTS news_test.dummy_article
+(id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+title VARCHAR(255),
+sources VARCHAR(50),
+pubdate DATETIME,
+url VARCHAR(250) NOT NULL,
+topic VARCHAR(55),
+PRIMARY KEY(id),
+UNIQUE INDEX(url) );
+
+CREATE TABLE IF NOT EXISTS news_test.dummy_topic
+(topic VARCHAR(55),
+PRIMARY KEY(topic));

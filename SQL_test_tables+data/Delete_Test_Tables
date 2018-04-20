@@ -1,0 +1,10 @@
+/*
+   @author Chrissa
+   IF SOMETHING GOES WRONG (or testing is done): DELETE THE TEST TABLES
+   This document includes a scripts to delete the two tables.
+   As needed, you can then recreate them by using the CREATE scripts and then the INSERT scripts.
+*/
+
+DROP TABLE dummy_article;
+
+DROP TABLE dummy_topic;
