@@ -1,4 +1,4 @@
 # to change the character set associated with the dummy_article table (as an example)
 
-ALTER TABLE dummy_article
+ALTER TABLE news_test.dummy_article
 COLLATE utf8_general_ci;
