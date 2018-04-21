@@ -110,7 +110,7 @@ public class ComparisonTest
 		URLConnection newsConnection = newsURL.openConnection();
 				
 		//Initialize InputStreamReader
-		InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream()(;)
+		InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream());
 				
 		//Use Gson classes to read json from source
 		JsonParser newsParser = new JsonParser();
