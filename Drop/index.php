@@ -37,8 +37,7 @@ if ($conn->connect_errno) {
 
 // $sql = "SELECT DISTINCT topic FROM dummy_article ORDER BY topic ASC";
 //Oriel this is the one variable I changed!!!
-$sql = "SELECT * FROM news_test.dummy_article a1 INNER JOIN (SELECT topic FROM news_test.dummy_article GROUP BY"
-. " topic ORDER BY COUNT(*) DESC LIMIT 5) AS a2 ON a1.topic = a2.topic ORDER BY a1.topic;";
+$sql = "SELECT topic FROM news_test.dummy_article GROUP BY topic ORDER BY COUNT(*) DESC LIMIT 5;";
 
 $sqlTot = "SELECT * FROM dummy_article ORDER BY topic ASC";
 
