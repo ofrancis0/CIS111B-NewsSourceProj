@@ -19,8 +19,10 @@ pubdate DATETIME,
 url VARCHAR(250) NOT NULL,
 topic VARCHAR(55),
 PRIMARY KEY(id),
-UNIQUE INDEX(url) );
+UNIQUE INDEX(url) )
+COLLATE utf8_general_ci;
 
 CREATE TABLE IF NOT EXISTS news_test.dummy_topic
 (topic VARCHAR(55),
-PRIMARY KEY(topic));
+PRIMARY KEY(topic))
+COLLATE utf8_general_ci;
