@@ -1,5 +1,6 @@
 import java.util.*;
 
+import paralleldots.ParallelDots;
 import com.google.gson.*;
 
 /**
@@ -20,7 +21,7 @@ public class Article
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
 	
-	private String title, source, date, topic, url;
+	private String title, source, date, description, topic, url;
 	
 	//------------------------------------------------------------------------------------------------------------
 	// Constructors
@@ -52,7 +53,8 @@ public class Article
 		//Use replaceAll method to delete punctuation from Title (for now)
 		title = jsonObject.get("title").toString().replaceAll("[^\\w\\s]", "");
 		source = jsonObject.get("source").getAsJsonObject().get("name").toString();
-		date = jsonObject.get("publishedAt").toString();
+		date = jsonObject.get("publishedAt").toString().replaceAll("T", " ");
+		description = jsonObject.get("description").toString();
 		url = jsonObject.get("url").toString();
 	}
 	
@@ -91,6 +93,17 @@ public class Article
 	public String getDate()
 	{
 		return date;
+	}
+	
+	/**
+	 * The getDescription method returns an Article's description field.
+	 * 
+	 * @return A String containing the Article's description.
+	 */
+	
+	public String getDescription()
+	{
+		return description;
 	}
 	
 	/**
@@ -158,6 +171,17 @@ public class Article
 	}
 	
 	/**
+	 * The setDescription method accepts a String argument and sets the Article's description field accordingly.
+	 * 
+	 * @param description A String containing the updated Article description.
+	 */
+	
+	public void setDescription(String description)
+	{
+		this.description = description;
+	}
+	
+	/**
 	 * The setURL method accepts a String argument and sets the Article's url field accordingly.
 	 * 
 	 * @param url A String containing the updated url field.
@@ -180,100 +204,45 @@ public class Article
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
-	// Matching Methods
+	// Helper Methods
 	//------------------------------------------------------------------------------------------------------------
 	
-	//THESE METHODS MUST BE COMPLETELY REPLACED, POSSIBLY WITH REFERENCE TO DANDELION API FOR TEXT ANALYTICS
-	//FOR NOW, THIS IS PLACEHOLDER CODE WHILE THE OTHER TECHNICAL ASPECTS ARE WORKED OUT
-	
 	/**
-	 * The getKeywords method creates a set of keywords from an article's title. Keywords are defined as words
-	 * greater than 3 characters in length.
-	 * 
-	 * @return A String set containing an article's keywords.
+	 * The generateTopic method makes a call to the ParallelDots Keyword API to isolate keywords from an Article's
+	 * description, and then concatenates those keywords into a String. It then updates the topic field to
+	 * that String.
 	 */
 	
-	public Set<String> getKeywords()
+	public void generateTopic()
 	{
-		//Split Title of Article into String Array of Words
-		String[] titleArray = title.split("\\W");
-		
-		//Sort array alphabetically
-		Arrays.sort(titleArray);
-		
-		//Convert String Array into Set to remove duplicates
-		Set<String> titleSet = new HashSet<String>(Arrays.asList(titleArray));
-		
-		//Remove All Words <4 letters
-		Set<String> keywordSet = new HashSet<String>(); //A set to hold all >3 char words from title
-		for(String word : titleSet)
-			if(word.length() >= 4)
-				keywordSet.add(word); //Add each word of appropriate length to keywordSet
-		
-		return keywordSet;
-	}
-	
-	/**
-	 * The match method compares two Article objects and determines if they are about the same topic. It accepts
-	 * an Article Object argument and returns a boolean value indicating whether the articles match. It also
-	 * updates both Articles' topic field if there is a match.
-	 * 
-	 * @param crossRefArticle An Article object to compare against this Article to determine a match.
-	 * @return True if the articles are about the same topic, false if not.
-	 */
-	
-	public boolean match(Article crossRefArticle)
-	{
-		//Use getKeywords method to create set of both this Article's and crossRefArticle's keywords
-		Set<String> articleKeywords = this.getKeywords();
-		Set<String> crossRefKeywords = crossRefArticle.getKeywords();
-		
-		//Create Intersection of both sets
-		articleKeywords.retainAll(crossRefKeywords);
-		
-		//If two or more keywords remain in intersection, return true and update topic field
-		if(articleKeywords.size() >= 2)
+		//Use Try/Catch to Handle Potential Exception
+		try
 		{
-			//If topic field does not exist, create topic field for both
-			if(this.topic == null && crossRefArticle.getTopic() == null)
-			{
-				this.topic = "";
-			
-				for(String keyword : articleKeywords)
-				topic += keyword + " ";
-			}
-			//Else if topic field exists for this, but not crossRefArticle, update CrossRefArticle
-			else if(this.topic != null && crossRefArticle.getTopic() == null)
-			{
-				crossRefArticle.setTopic(this.topic);
-			}
-			//Else if topic field exists for crossRefArticle, but not this, update this
-			else if(this.topic == null && crossRefArticle.getTopic() != null)
-			{
-				this.topic = crossRefArticle.getTopic();
-			}
-
-			return true;
+			//Instantiate ParallelDots object, passing API key
+			ParallelDots pdObject = new ParallelDots("Kwr4COFZaeu3JHwOPXuIHYFqeqdaajmAkF5VclV49Hw");
+	      
+			//Get Json Output from Parallel Dots based on current description field, save as String
+			String jsonString = pdObject.keywords(this.description);
+	      
+			//Use Gson classes to parse Json String into a JsonArray of Keywords
+			JsonParser pdParser = new JsonParser();
+			JsonObject jsonObject = pdParser.parse(jsonString).getAsJsonObject();
+			JsonArray keywordArray = jsonObject.get("keywords").getAsJsonArray();
+	      
+			//Instantiate string to hold new topic field
+			String newTopic = "";
+	    
+			//Iterate over JsonArray, concatenating Keywords Into String
+			for(JsonElement keywordElement : keywordArray)
+				newTopic += keywordElement.getAsJsonObject().get("keyword").toString() + " ";
+	    
+			//Update Topic field Accordingly
+			this.topic = newTopic;
 		}
-		else
-			return false;
-	}
-	
-	//------------------------------------------------------------------------------------------------------------
-	// Testing Methods
-	//------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * The toString() method overrides Java.Object's toString method, which allows for printing Article info out
-	 * to the console.
-	 * 
-	 * @return A String containing information on an article's fields.
-	 */
-	
-	@Override
-	public String toString()
-	{
-		return "Title: " + title + " Source: " + source + " Date: " + date + " URL: " + url;
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 }

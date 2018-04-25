@@ -16,7 +16,7 @@ public class NewsScraper
 		// Initial Setup
 		//--------------------------------------------------------------------------------------------------------
 		
-		//Instantiage NewsAPIConnector
+		//Instantiate NewsAPIConnector
 		NewsAPIConnector newsConn = new NewsAPIConnector();
 		
 		//Instantiate SQLReadWriter and Connection
@@ -36,8 +36,12 @@ public class NewsScraper
 			// NewsAPI to DB
 			//----------------------------------------------------------------------------------------------------
 			
+			System.out.println("Getting Articles");
+			
 			//Get Array of Articles from NewsAPI
-			Article[] inputArray = newsConn.getArticleArray();
+			ArrayList<Article> inputArray = newsConn.getArticleArray();
+			
+			System.out.println("Updating Database");
 			
 			//Iterate over Article Array, using SQLReadWriter class to write each Article to the article table
 			for(Article article : inputArray)
@@ -47,44 +51,58 @@ public class NewsScraper
 			newsConn.updateTimeStamp();
 			newsConn.updateURL();
 			
+			//TESTING LINE DELETE THIS
+			System.out.println("Finished Updating Database");
+			
 			//----------------------------------------------------------------------------------------------------
 			// Article Comparisons
 			//----------------------------------------------------------------------------------------------------
 			
-			//Instantiate Comparison ArrayList using SQLReadWriter readArticle Method
-			compareList = sqlWriter.readArticle("article", sqlConn);
+			System.out.println("Getting Articles from DB");
 			
-			//Use nested for loop to run Comparisons
-			for(int index = 0; index < compareList.size() - 1; index++)
+			//Instantiate Comparison ArrayList using SQLReadWriter readArticle Method
+			compareList = sqlWriter.readArticles("article", sqlConn);
+			
+			System.out.println("Comparing Articles...");
+			
+			int compareIndex = 0;
+			
+			while(compareIndex < compareList.size())
 			{
-				for(int crossRefIndex = index + 1; crossRefIndex < compareList.size(); crossRefIndex++)
+				//Get URLs of Matching Articles
+				ArrayList<String> matchURLs = sqlWriter.getMatches(compareList.get(compareIndex), "article", sqlConn);
+				
+				ArrayList<Integer> matchIndices = new ArrayList<>();
+				
+				for(String url : matchURLs)
+					for(int i = compareIndex; i < compareList.size(); i++)
+						if(compareList.get(i).getURL().equals(url))
+							matchIndices.add(i);
+				
+				if(matchIndices.size() > 1)
 				{
-					//Use Article Class compare method to determine if Articles match
-					//Compare method automatically generates topic field to Article object in case of match
-					boolean match = compareList.get(index).match(compareList.get(crossRefIndex));
+					compareList.get(compareIndex).generateTopic();
+					sqlWriter.addArticleTopic(compareList.get(compareIndex), "article", sqlConn);
 					
-					//If Articles Match, Add Topic Line to Both Articles on DB
-					if(match)
+					Collections.sort(matchIndices);
+					Collections.reverse(matchIndices);
+					
+					for(int i : matchIndices)
 					{
-						sqlWriter.addArticleTopic(compareList.get(index), "article", sqlConn);
-						sqlWriter.addArticleTopic(compareList.get(crossRefIndex), "article", sqlConn);
+						compareList.get(i).setTopic(compareList.get(compareIndex).getTopic());
+						sqlWriter.addArticleTopic(compareList.get(i), "article", sqlConn);
+						compareList.remove(i);
 					}
 				}
-				System.out.println("Finished Comparison Pass");
+				else
+					compareIndex++;
+				
+				System.out.println("Compare Index: " + compareIndex);
+				System.out.println(compareList.size());
 			}
 			
-			System.out.println("Finished Iteration");
-			
-			//Pause for a set amount of time (5 Minutes) before repeating
-			//Thread.sleep accepts a long argument in milliseconds
-			//1000 milliseconds * 60 seconds * 5 minutes
-			try
-			{
-				Thread.sleep((long)(1000 * 60 * 5));
-			}
-			catch(InterruptedException e)
-			{
-			}
+			//TESTING LINE TAKE THIS OUT
+			keepGoing = false;
 		}
 	}
 }
