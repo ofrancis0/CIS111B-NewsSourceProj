@@ -24,7 +24,8 @@ public class NewsAPIConnector
 	private final String URL_BASE = "http://newsapi.org/v2/everything?language=en&sources=";
 	
 	private final String[] API_KEYS = {"19f78480cff94fc3bcebcdc57d3c5c70", "4e131f24ad254086a57351641b8ba21d",
-									   "a513991c58ac4bc58031b3bc981c4d5b", "6c324fcf238649d7a2d4019cafb64b7e"};
+									   "a513991c58ac4bc58031b3bc981c4d5b", "6c324fcf238649d7a2d4019cafb64b7e",
+									   "21d4cdd3f4f24bb3a3db7c34664daa72"};
 	
 	private final String[] SOURCES = {"abc-news", "associated-press", "bbc-news", "bloomberg", "breitbart-news", 
 									  "business-insider", "cnbc", "cnn", "fortune", "fox-news", 
@@ -178,9 +179,10 @@ public class NewsAPIConnector
 				return newsReader;
 			}
 			//If Too Many Requests Have Been Made with this API key
-			else if(responseCode == 429) 
+			else 
 			{
-				if(apiIndex < 3) //If All keys have not been exhuasted
+				System.out.println(responseCode);
+				if(apiIndex < 4) //If All keys have not been exhuasted
 				{
 					apiIndex++; //Move to next key
 					this.updateURL(); //Update URL with new key
@@ -192,9 +194,6 @@ public class NewsAPIConnector
 					return null; //Return null
 				}
 			}
-			//If error is unrecognized, return null
-			else
-				return null;	
 		}
 		catch(IOException e)
 		{

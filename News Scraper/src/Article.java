@@ -22,6 +22,7 @@ public class Article
 	//------------------------------------------------------------------------------------------------------------
 	
 	private String title, source, date, description, topic, url;
+	private int databaseID;
 	
 	//------------------------------------------------------------------------------------------------------------
 	// Constructors
@@ -131,6 +132,18 @@ public class Article
 			return null;
 	}
 	
+	/**
+	 * The getID method returns an Article's databaseID field, for use with the SQL database.
+	 * 
+	 * @return An int containing the Article's SQL databaseID.
+	 */
+	
+	public int getID()
+	{
+		return databaseID;
+	}
+	
+	
 	//------------------------------------------------------------------------------------------------------------
 	// Mutator Methods
 	//------------------------------------------------------------------------------------------------------------
@@ -203,6 +216,17 @@ public class Article
 		this.topic = topic;
 	}
 	
+	/**
+	 * The setID method accepts an int argument and sets the Article's databaseID field accordingly.
+	 * 
+	 * @param databaseID An int containing the Article's SQL Database ID.
+	 */
+	
+	public void setID(int databaseID)
+	{
+		this.databaseID = databaseID;
+	}
+	
 	//------------------------------------------------------------------------------------------------------------
 	// Helper Methods
 	//------------------------------------------------------------------------------------------------------------
@@ -215,34 +239,20 @@ public class Article
 	
 	public void generateTopic()
 	{
-		//Use Try/Catch to Handle Potential Exception
-		try
-		{
-			//Instantiate ParallelDots object, passing API key
-			ParallelDots pdObject = new ParallelDots("Kwr4COFZaeu3JHwOPXuIHYFqeqdaajmAkF5VclV49Hw");
-	      
-			//Get Json Output from Parallel Dots based on current description field, save as String
-			String jsonString = pdObject.keywords(this.description);
-	      
-			//Use Gson classes to parse Json String into a JsonArray of Keywords
-			JsonParser pdParser = new JsonParser();
-			JsonObject jsonObject = pdParser.parse(jsonString).getAsJsonObject();
-			JsonArray keywordArray = jsonObject.get("keywords").getAsJsonArray();
-	      
-			//Instantiate string to hold new topic field
-			String newTopic = "";
-	    
-			//Iterate over JsonArray, concatenating Keywords Into String
-			for(JsonElement keywordElement : keywordArray)
-				newTopic += keywordElement.getAsJsonObject().get("keyword").toString() + " ";
-	    
-			//Update Topic field Accordingly
-			this.topic = newTopic;
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		//Split Title of Article into String Array of Words
+		String[] titleArray = title.split("\\W");
+			
+		//Convert String Array into Set to remove duplicates
+		Set<String> titleSet = new HashSet<String>(Arrays.asList(titleArray));
+			
+		//Remove All Words <4 letters
+		Set<String> keywordSet = new HashSet<String>(); //A set to hold all >3 char words from title
+		for(String word : titleSet)
+			if(word.length() >= 4)
+				keywordSet.add(word); //Add each word of appropriate length to keywordSet
+			
+		topic = "";
+		for(String word : keywordSet)
+			topic += word + " ";
 	}
-	
 }

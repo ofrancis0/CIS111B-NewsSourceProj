@@ -18,8 +18,8 @@ public class SQLReadWriter
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
 	
-	private final String USERNAME = "Itsbeenawile";
-	private final String PASSWORD = "RrQAYFbRjZvu9KsxRjQTZ8aK";
+	private final String USERNAME = "username";
+	private final String PASSWORD = "password";
 	private final String DRIVERNAME="com.mysql.jdbc.Driver";
 	private String databaseName, databaseAddress;
 	
@@ -113,6 +113,7 @@ public class SQLReadWriter
 				//Use Default Article Constructor to instantiate Article Objects
 				//Use Mutator Methods to Set Article Fields
 				Article article = new Article();
+				article.setID(sqlResults.getInt("id"));
 				article.setTitle(sqlResults.getString("title"));
 				article.setSource(sqlResults.getString("sources"));
 				article.setDate(sqlResults.getString("pubdate"));
@@ -143,17 +144,17 @@ public class SQLReadWriter
 	 * @param sqlConnection An SQL Connection object representing the connection to the relevant database.
 	 */
 	
-	public ArrayList<String> getMatches(Article article, String tableName, Connection sqlConnection)
+	public ArrayList<Integer> getMatches(Article article, String tableName, Connection sqlConnection)
 	{
 		//Declare an ArrayList to store URLs of Article's that match
-		ArrayList<String> returnArray = new ArrayList<>();
+		ArrayList<Integer> returnArray = new ArrayList<>();
 		
 		//Use Try/Catch to Handle Potential Exceptions
 		try
 		{
 			//Create a String to Hold SQL Statement and Initialize Properly
 			//This String calls for Matched Scores against a description ordered descending
-			String queryString = "SELECT url, MATCH (title, description) AGAINST " +
+			String queryString = "SELECT id, MATCH (title, description) AGAINST " +
 								 "(? IN NATURAL LANGUAGE MODE) AS score FROM " + tableName +
 								 " ORDER BY score DESC";
 			
@@ -171,8 +172,8 @@ public class SQLReadWriter
 				double matchScore = sqlResults.getDouble("score");
 				
 				//If matchScore >= .5, Add URL to ArrayList
-				if(matchScore >= 22.0)
-					returnArray.add(sqlResults.getString("url"));
+				if(matchScore >= 12.0)
+					returnArray.add(sqlResults.getInt("id"));
 				//Otherwise, end iterations, because Score is returned in descending order
 				else
 					break;
@@ -182,7 +183,7 @@ public class SQLReadWriter
 		catch(Exception e)
 		{
 			e.printStackTrace();
-			return new ArrayList<String>();
+			return new ArrayList<Integer>();
 		}
 		
 		//If no exception is thrown, return returnArray
@@ -256,14 +257,14 @@ public class SQLReadWriter
 			
 			//Define the string for the Update Query
 			//Use ? to indicate the parameters
-			String statementString = "UPDATE " + tableName + " SET topic = ? WHERE url = ? ";
+			String statementString = "UPDATE " + tableName + " SET topic = ? WHERE id = ? ";
 
 			//Prepare the Statement with the prepareStatement method
 			sqlStatement = sqlConnection.prepareStatement(statementString);
 
 			//Set each of the parameters for the sqlStatement
 			sqlStatement.setString(1, article.getTopic());
-			sqlStatement.setString(2, article.getURL());
+			sqlStatement.setInt(2, article.getID());
 
 			//Execute and close the Prepared Statement
 			sqlStatement.execute();

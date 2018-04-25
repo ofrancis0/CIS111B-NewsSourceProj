@@ -36,12 +36,8 @@ public class NewsScraper
 			// NewsAPI to DB
 			//----------------------------------------------------------------------------------------------------
 			
-			System.out.println("Getting Articles");
-			
 			//Get Array of Articles from NewsAPI
 			ArrayList<Article> inputArray = newsConn.getArticleArray();
-			
-			System.out.println("Updating Database");
 			
 			//Iterate over Article Array, using SQLReadWriter class to write each Article to the article table
 			for(Article article : inputArray)
@@ -51,32 +47,27 @@ public class NewsScraper
 			newsConn.updateTimeStamp();
 			newsConn.updateURL();
 			
-			//TESTING LINE DELETE THIS
-			System.out.println("Finished Updating Database");
 			
 			//----------------------------------------------------------------------------------------------------
 			// Article Comparisons
 			//----------------------------------------------------------------------------------------------------
 			
-			System.out.println("Getting Articles from DB");
 			
 			//Instantiate Comparison ArrayList using SQLReadWriter readArticle Method
 			compareList = sqlWriter.readArticles("article", sqlConn);
-			
-			System.out.println("Comparing Articles...");
 			
 			int compareIndex = 0;
 			
 			while(compareIndex < compareList.size())
 			{
 				//Get URLs of Matching Articles
-				ArrayList<String> matchURLs = sqlWriter.getMatches(compareList.get(compareIndex), "article", sqlConn);
+				ArrayList<Integer> matchIDs = sqlWriter.getMatches(compareList.get(compareIndex), "article", sqlConn);
 				
 				ArrayList<Integer> matchIndices = new ArrayList<>();
 				
-				for(String url : matchURLs)
+				for(int id : matchIDs)
 					for(int i = compareIndex; i < compareList.size(); i++)
-						if(compareList.get(i).getURL().equals(url))
+						if(compareList.get(i).getID() == id)
 							matchIndices.add(i);
 				
 				if(matchIndices.size() > 1)
@@ -96,13 +87,16 @@ public class NewsScraper
 				}
 				else
 					compareIndex++;
-				
-				System.out.println("Compare Index: " + compareIndex);
-				System.out.println(compareList.size());
 			}
 			
-			//TESTING LINE TAKE THIS OUT
-			keepGoing = false;
+			try
+			{
+			Thread.sleep(1000 * 60 * 60);
+			}
+			catch(InterruptedException e)
+			{
+				continue;
+			}
 		}
 	}
 }
