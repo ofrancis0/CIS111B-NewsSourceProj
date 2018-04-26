@@ -18,8 +18,8 @@ public class SQLReadWriter
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
 	
-	private final String USERNAME = "username";
-	private final String PASSWORD = "password";
+	private final String USERNAME = "XXXXX";
+	private final String PASSWORD = "XXXXX";
 	private final String DRIVERNAME="com.mysql.jdbc.Driver";
 	private String databaseName, databaseAddress;
 	
@@ -123,6 +123,11 @@ public class SQLReadWriter
 				//Add the new article object to the ArrayList of articles
 				articleArrayList.add(article);
 			}
+			
+			//Close PreparedStatement and ResultSet
+			sqlStatement.close();
+			sqlResults.close();
+			
 		//Return Empty ArrayList if Exception is thrown
 		}
 		catch (Exception e)
@@ -172,12 +177,16 @@ public class SQLReadWriter
 				double matchScore = sqlResults.getDouble("score");
 				
 				//If matchScore >= .5, Add URL to ArrayList
-				if(matchScore >= 12.0)
+				if(matchScore >= 18.0)
 					returnArray.add(sqlResults.getInt("id"));
 				//Otherwise, end iterations, because Score is returned in descending order
 				else
 					break;
 			}
+			
+			//Close PreparedStatement and ResultSet
+			sqlStatement.close();
+			sqlResults.close();
 		}
 		//If exception is thrown, return empty ArrayList
 		catch(Exception e)
@@ -204,39 +213,30 @@ public class SQLReadWriter
 	 * SQL database to write to.
 	 */
 	
-	public void writeArticle(Article article, String tableName, Connection sqlConnection)
+	public void writeArticle(Article article, String tableName, Connection sqlConnection) throws Exception
 	{
-		//Use Try/Catch for Exception Handling
-		try
-		{
-			//Declare a PreparedStatement object to statements to MySQL
-			PreparedStatement sqlStatement;
-			
-			//Define the string for the insert ignore query
-			//Use ? to indicate the parameters to be inserted (total of 5 parameters)
-			String statementString = "INSERT IGNORE INTO " + tableName +
-								     "(title, sources, pubdate, description, url) " +
-					                 "Values" + "(?,?,?,?,?)";
+		//Declare a PreparedStatement object to statements to MySQL
+		PreparedStatement sqlStatement;
+		
+		//Define the string for the insert ignore query
+		//Use ? to indicate the parameters to be inserted (total of 5 parameters)
+		String statementString = "INSERT IGNORE INTO " + tableName +
+							     "(title, sources, pubdate, description, url) " +
+				                 "Values" + "(?,?,?,?,?)";
 
-			//Prepare the Statement with prepareStatement method
-			sqlStatement = sqlConnection.prepareStatement(statementString);
+		//Prepare the Statement with prepareStatement method
+		sqlStatement = sqlConnection.prepareStatement(statementString);
 
-			//Set each of the parameters for the sqlStatement
-			sqlStatement.setString(1, article.getTitle());
-			sqlStatement.setString(2, article.getSource());
-			sqlStatement.setString(3, article.getDate());
-			sqlStatement.setString(4, article.getDescription());
-			sqlStatement.setString(5, article.getURL());
+		//Set each of the parameters for the sqlStatement
+		sqlStatement.setString(1, article.getTitle());
+		sqlStatement.setString(2, article.getSource());
+		sqlStatement.setTimestamp(3, article.getTimeStamp());
+		sqlStatement.setString(4, article.getDescription());
+		sqlStatement.setString(5, article.getURL());
 
-			//Execute and close the Prepared Statement
-			sqlStatement.execute();
-			sqlStatement.close();
-		}
-		//Catch a potential exception and PrintStackTrace if caught
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		//Execute and close the Prepared Statement
+		sqlStatement.execute();
+		sqlStatement.close();
 	}
 	
 	/**

@@ -1,6 +1,8 @@
 import java.util.*;
+import java.time.format.*;
+import java.time.temporal.*;
+import java.time.Instant;
 
-import paralleldots.ParallelDots;
 import com.google.gson.*;
 
 /**
@@ -52,9 +54,9 @@ public class Article
 		
 		//Use Gson get method to retrieve relevent data from JSON Article
 		//Use replaceAll method to delete punctuation from Title (for now)
-		title = jsonObject.get("title").toString().replaceAll("[^\\w\\s]", "");
+		title = jsonObject.get("title").toString();
 		source = jsonObject.get("source").getAsJsonObject().get("name").toString();
-		date = jsonObject.get("publishedAt").toString().replaceAll("T", " ");
+		date = jsonObject.get("publishedAt").toString().replaceAll("\"", "");
 		description = jsonObject.get("description").toString();
 		url = jsonObject.get("url").toString();
 	}
@@ -157,7 +159,7 @@ public class Article
 	public void setTitle(String title)
 	{
 		//Use replaceAll method to remove punctuation
-		this.title = title.replaceAll("[^\\w\\s]", "");
+		this.title = title;
 	}
 	
 	/**
@@ -230,11 +232,10 @@ public class Article
 	//------------------------------------------------------------------------------------------------------------
 	// Helper Methods
 	//------------------------------------------------------------------------------------------------------------
-	
+ 
 	/**
-	 * The generateTopic method makes a call to the ParallelDots Keyword API to isolate keywords from an Article's
-	 * description, and then concatenates those keywords into a String. It then updates the topic field to
-	 * that String.
+	 * The generateTopic method creates a set of words longer than 4 characters and concatenates that set into
+	 * a String. It then updates the topic field to that String.
 	 */
 	
 	public void generateTopic()
@@ -255,4 +256,25 @@ public class Article
 		for(String word : keywordSet)
 			topic += word + " ";
 	}
+	
+	/**
+	 * The getTimeStamp method generate's a java.sql.Timestamp object that represents an Article's date field.
+	 * 
+	 * @return A java.sql.Timestamp object representing an Article's date field.
+	 */
+	
+	public java.sql.Timestamp getTimeStamp() throws Exception
+	{
+		//Instantiate DateTimeFormatter object to parse from ISO 8601 string
+		DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_DATE_TIME;
+		
+		//Parse Date Field into TemporalAccessor
+	    TemporalAccessor accessor = timeFormatter.parse(this.date);
+	    Date dateObj = Date.from(Instant.from(accessor));
+	    
+	    //Turn util.Date into sql.Date
+	    java.sql.Timestamp returnDate = new java.sql.Timestamp(dateObj.getTime());
+	    return returnDate;
+	}
+
 }

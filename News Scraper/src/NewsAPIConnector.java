@@ -27,11 +27,8 @@ public class NewsAPIConnector
 									   "a513991c58ac4bc58031b3bc981c4d5b", "6c324fcf238649d7a2d4019cafb64b7e",
 									   "21d4cdd3f4f24bb3a3db7c34664daa72"};
 	
-	private final String[] SOURCES = {"abc-news", "associated-press", "bbc-news", "bloomberg", "breitbart-news", 
-									  "business-insider", "cnbc", "cnn", "fortune", "fox-news", 
-									  "msnbc", "newsweek", "politico", "reuters", "the-economist", 
-									  "the-huffington-post", "the-new-york-times", "the-wall-street-journal", 
-									  "the-washington-post", "usa-today"};
+	private final String[] SOURCES = {"associated-press", "bbc-news", "breitbart-news", 
+									  "fox-news", "msnbc", "the-new-york-times"};
 	
 	private String url, currentTimeStamp, previousTimeStamp;
 	private int pageNumber, apiIndex;
@@ -81,31 +78,20 @@ public class NewsAPIConnector
 		//Create a SimpleDateFormat object with formatting settings for ISO 8601
 		//Format: "2018-04-13T06:23:00" 
 		//Set the TimeZone to UTC with TimeZone class
-		SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD'T'HH:MM:SS");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		TimeZone tz = TimeZone.getTimeZone("UTC");
 		dateFormat.setTimeZone(tz);
-		
-		//Set previousTimeStamp to currentTimeStamp if the latter is not null.
-		if(currentTimeStamp != null)
-			previousTimeStamp = currentTimeStamp;
 		
 		//Create a Date Object with the default constructor, which represents the current time and date.
 		Date dateObj = new Date();
 				
 		//Parse a NewsAPI relevant currentTimeStamp String from the Date Object using SimpleDateFormat. 
 		currentTimeStamp = dateFormat.format(dateObj).toString(); 
-				
-		//If previousTimeStamp is still null, set to midnight of the current day
-		if(previousTimeStamp == null)
-		{
-			//Set Date Object to midnight of current day.
-			dateObj.setHours(0);
-			dateObj.setMinutes(0);
-			dateObj.setSeconds(0);
-			
-			//Parse a NewsAPI relevant previousTimeStamp String from the Date Object using SimpleDateFormat
-			previousTimeStamp = dateFormat.format(dateObj).toString();
-		}
+		
+		//Set Previous Time Stamp to 1 Hour before Current time
+		dateObj.setHours(dateObj.getHours() - 1);
+		previousTimeStamp = dateFormat.format(dateObj).toString();
+		
 	}
 	
 	/**
