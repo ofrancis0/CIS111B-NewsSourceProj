@@ -177,7 +177,7 @@ public class SQLReadWriter
 				double matchScore = sqlResults.getDouble("score");
 				
 				//If matchScore >= .5, Add URL to ArrayList
-				if(matchScore >= 18.0)
+				if(matchScore >= 25.0)
 					returnArray.add(sqlResults.getInt("id"));
 				//Otherwise, end iterations, because Score is returned in descending order
 				else

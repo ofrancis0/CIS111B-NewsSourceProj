@@ -28,8 +28,12 @@ public class NewsScraper
 		// NewsAPI to DB
 		//----------------------------------------------------------------------------------------------------
 		
+		System.out.println("Getting Articles from NewsAPI...");
+		
 		//Get Array of Articles from NewsAPI
 		ArrayList<Article> articleArray = newsConn.getArticleArray();
+		
+		System.out.println("Adding " + articleArray.size() + " Articles to Database...");
 		
 		//Iterate over Article Array, using SQLReadWriter class to write each Article to the article table
 		for(Article article : articleArray)
@@ -49,11 +53,15 @@ public class NewsScraper
 		// Article Comparisons
 		//----------------------------------------------------------------------------------------------------
 		
+		System.out.println("Getting All Articles from Database...");
+		
 		//Reset articleArray to ArrayList of Articles from SQLReadWriter readArticles Method
 		articleArray = sqlWriter.readArticles("article", sqlConn);
 		
 		//Instantiate an Iterator for Comparisons
 		int compareIndex = 0;
+		
+		System.out.println("Comparing " + articleArray.size() + " Articles...");
 		
 		//While the Iterator is less than the Number of Remaining Articles
 		while(compareIndex < articleArray.size())
@@ -71,7 +79,7 @@ public class NewsScraper
 						matchIndices.add(i);
 			
 			//If there are 2 or More Matches...
-			if(matchIndices.size() >= 3)
+			if(matchIndices.size() > 3)
 			{
 				//Generate a Topic with the generateTopic method, then write that Topic to the DB
 				articleArray.get(compareIndex).generateTopic();
@@ -115,5 +123,6 @@ public class NewsScraper
 			}
 		}//End of While Loop
 		
+		System.out.println("Finished.");
 	}
 }

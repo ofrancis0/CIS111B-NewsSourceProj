@@ -3,6 +3,7 @@ import java.time.format.*;
 import java.time.temporal.*;
 import java.time.Instant;
 
+import paralleldots.ParallelDots;
 import com.google.gson.*;
 
 /**
@@ -234,27 +235,60 @@ public class Article
 	//------------------------------------------------------------------------------------------------------------
  
 	/**
-	 * The generateTopic method creates a set of words longer than 4 characters and concatenates that set into
-	 * a String. It then updates the topic field to that String.
+	 * The generateTopic method calls the ParallelDots keyword API to generate a topic off of an article's most
+	 * important entities. It then updates an Article's topic field accordingly.
 	 */
 	
 	public void generateTopic()
 	{
-		//Split Title of Article into String Array of Words
-		String[] titleArray = title.split("\\W");
+		//Use try/catch to handle Possible exception
+		try
+		{
+			//Reset Topic Field
+			topic = "";
 			
-		//Convert String Array into Set to remove duplicates
-		Set<String> titleSet = new HashSet<String>(Arrays.asList(titleArray));
+			//Instantiate ParallelDots object, passing API key
+			ParallelDots pdObject = new ParallelDots("Kwr4COFZaeu3JHwOPXuIHYFqeqdaajmAkF5VclV49Hw");
+			      
+			//Get Json Output from Parallel Dots based on current description field, save as String
+			String jsonString = pdObject.ner(this.description);
+			      
+			//Use Gson classes to parse Json String into a JsonArray of Keywords
+			JsonParser pdParser = new JsonParser();
+			JsonObject jsonObject = pdParser.parse(jsonString).getAsJsonObject();
+			JsonArray keywordArray = jsonObject.get("entities").getAsJsonArray();
 			
-		//Remove All Words <4 letters
-		Set<String> keywordSet = new HashSet<String>(); //A set to hold all >3 char words from title
-		for(String word : titleSet)
-			if(word.length() >= 4)
-				keywordSet.add(word); //Add each word of appropriate length to keywordSet
+			//Instantiate TreeMap to Hold keywords by Confidence Score
+			TreeMap<Double, String> scoreMap = new TreeMap<Double, String>();
 			
-		topic = "";
-		for(String word : keywordSet)
-			topic += word + " ";
+			//Add Entities from ParallelDots to TreeMap, using scores as Keys and Entities as Values
+			for(JsonElement keyword : keywordArray)
+				scoreMap.put(keyword.getAsJsonObject().get("confidence_score").getAsDouble(), 
+							 keyword.getAsJsonObject().get("name").toString());
+			
+			//Pull 2 Highest Scoring Keywords from TreeMap and Concatenate them into Topic Field
+			int keywordsAdded = 0;
+			for(Double key : scoreMap.descendingKeySet())
+			{
+				if(keywordsAdded == 0)
+				{
+					topic += scoreMap.get(key) + " and ";
+					keywordsAdded++;
+				}
+				else if(keywordsAdded == 1)
+				{
+					topic += scoreMap.get(key);
+					keywordsAdded++;
+				}
+			}
+			
+			//Remove unwanted Quotation Marks
+			topic = topic.replaceAll("\"", "");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	/**
