@@ -79,7 +79,7 @@ public class NewsScraper
 						matchIndices.add(i);
 			
 			//If there are 2 or More Matches...
-			if(matchIndices.size() > 3)
+			if(matchIndices.size() > 2)
 			{
 				//Generate a Topic with the generateTopic method, then write that Topic to the DB
 				articleArray.get(compareIndex).generateTopic();

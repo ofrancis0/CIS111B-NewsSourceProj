@@ -28,7 +28,7 @@ public class NewsAPIConnector
 									   "21d4cdd3f4f24bb3a3db7c34664daa72"};
 	
 	private final String[] SOURCES = {"associated-press", "bbc-news", "breitbart-news", 
-									  "fox-news", "msnbc", "the-new-york-times"};
+									  "fox-news", "cnn", "the-new-york-times"};
 	
 	private String url, currentTimeStamp, previousTimeStamp;
 	private int pageNumber, apiIndex;

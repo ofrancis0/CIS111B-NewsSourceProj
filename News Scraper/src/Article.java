@@ -272,8 +272,10 @@ public class Article
 			{
 				if(keywordsAdded == 0)
 				{
-					topic += scoreMap.get(key) + " and ";
+					topic += scoreMap.get(key);
 					keywordsAdded++;
+					if(scoreMap.size() > 1)
+						topic += " and ";
 				}
 				else if(keywordsAdded == 1)
 				{
