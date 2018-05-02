@@ -18,10 +18,12 @@ public class SQLReadWriter
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
 	
-	private final String USERNAME = "XXXXX";
-	private final String PASSWORD = "XXXXX";
-	private final String DRIVERNAME="com.mysql.jdbc.Driver";
-	private String databaseName, databaseAddress;
+	protected final String USERNAME = "javauser";
+	protected final String PASSWORD = "Cis111B!";
+	protected final String DRIVERNAME="com.mysql.jdbc.Driver";
+	protected String databaseName, databaseAddress;
+	protected Connection sqlConnection;
+	protected int connectionCounter;
 	
 	//------------------------------------------------------------------------------------------------------------
 	// Constructor
@@ -29,7 +31,8 @@ public class SQLReadWriter
 	
 	/**
 	 * The SQLReadWriter Constructor accepts a String argument for the SQL Database Name and Address, 
-	 * and initializes the respective fields with those arguments.
+	 * and initializes the respective fields with those arguments. It also instantiates a Connection object
+	 * with the connect method.
 	 * 
 	 * @param databaseName A String containing the SQL Database's name.
 	 * @param databaseAddress A String containing the SQL Database's address.
@@ -39,6 +42,8 @@ public class SQLReadWriter
 	{
 		this.databaseName = databaseName;
 		this.databaseAddress = databaseAddress;
+		this.connect();
+		this.connectionCounter = 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
@@ -46,34 +51,35 @@ public class SQLReadWriter
 	//------------------------------------------------------------------------------------------------------------
 	
 	/**
-	 * The connect method establishes a connection to a local SQL database based on the current databaseAddress field
-	 * and returns a Connection object associated with the java.sql.Connection class.
+	 * The connect method establishes a connection to a local SQL database based on the current databaseAddress 
+	 * field. It closes any open connection and reinstantiates a SQL Connection object, assigning it to the 
+	 * sqlConnection field.
 	 * 
 	 * @return A Connection object from java.sql, for use with Read and Write methods.
 	 */
 	
-	public Connection connect()
-	{
-		//Initialize SQL Connection object and Datebase URL/Name String
-		Connection sqlConnection;
+	public void connect()
+	{	
+		//Initialize Datebase URL/Name String
 		String databaseURL = databaseAddress + "/" + databaseName;
 
 		//Connect to the database
 		//Use Try/Catch to handle possible exception
 		try
 		{
+			//Close Connection object if already open
+			if(this.sqlConnection != null)
+				this.sqlConnection.close();
+			
+			//Establish New Connection
 			Class.forName(DRIVERNAME).newInstance();
-			sqlConnection = DriverManager.getConnection(databaseURL, USERNAME, PASSWORD);
+			this.sqlConnection = DriverManager.getConnection(databaseURL, USERNAME, PASSWORD);
 		} 
 		//Return null if exception is thrown
 		catch(Exception e) 
 		{
 			e.printStackTrace();
-			return null;
 		}
-		
-		//Return Connection Object if no exception is thrown
-		return sqlConnection;
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
@@ -90,9 +96,15 @@ public class SQLReadWriter
 	 * @return An ArrayList of Article Objects representing the articles from the table.
 	 */
 	
-	public ArrayList<Article> readArticles(String tableName, Connection sqlConnection)
+	public ArrayList<Article> readArticles(String tableName)
 	{
-
+		//Call Connect Method if Connection has been used too many times
+		if(connectionCounter > 50)
+		{
+			this.connect();
+			connectionCounter = 0;
+		}
+		
 		// create a list of Article objects to hold each of the articles from the database
 		ArrayList<Article> articleArrayList = new ArrayList<>();
 
@@ -136,6 +148,9 @@ public class SQLReadWriter
 			return new ArrayList<>();
 		}
 
+		//Iterate connectionCounter to handle Memory Usage
+		connectionCounter++;
+		
 		//Return ArrayList of Articles if no exception is thrown
 		return articleArrayList;
 	}
@@ -149,8 +164,15 @@ public class SQLReadWriter
 	 * @param sqlConnection An SQL Connection object representing the connection to the relevant database.
 	 */
 	
-	public ArrayList<Integer> getMatches(Article article, String tableName, Connection sqlConnection)
+	public ArrayList<Integer> getMatches(Article article, String tableName)
 	{
+		//Call Connect Method if Connection has been used too many times
+		if(connectionCounter > 50)
+		{
+			this.connect();
+			connectionCounter = 0;
+		}
+		
 		//Declare an ArrayList to store URLs of Article's that match
 		ArrayList<Integer> returnArray = new ArrayList<>();
 		
@@ -195,6 +217,9 @@ public class SQLReadWriter
 			return new ArrayList<Integer>();
 		}
 		
+		//Increment connectionCounter
+		connectionCounter++;
+		
 		//If no exception is thrown, return returnArray
 		return returnArray;
 	}
@@ -213,8 +238,15 @@ public class SQLReadWriter
 	 * SQL database to write to.
 	 */
 	
-	public void writeArticle(Article article, String tableName, Connection sqlConnection) throws Exception
+	public void writeArticle(Article article, String tableName) throws Exception
 	{
+		//Call Connect Method if Connection has been used too many times
+		if(connectionCounter > 50)
+		{
+			this.connect();
+			connectionCounter = 0;
+		}
+		
 		//Declare a PreparedStatement object to statements to MySQL
 		PreparedStatement sqlStatement;
 		
@@ -237,6 +269,9 @@ public class SQLReadWriter
 		//Execute and close the Prepared Statement
 		sqlStatement.execute();
 		sqlStatement.close();
+		
+		//Increment connectionCounter
+		connectionCounter++;
 	}
 	
 	/**
@@ -247,8 +282,15 @@ public class SQLReadWriter
 	 * @param tableName Name of the table in the database
 	 * @param sqlConnection The SQL Connection Object representing the connection to the relevant DB.
 	 */
-	public void addArticleTopic (Article article, String tableName, Connection sqlConnection)
+	public void addArticleTopic (Article article, String tableName)
 	{
+		//Call Connect Method if Connection has been used too many times
+		if(connectionCounter > 50)
+		{
+			this.connect();
+			connectionCounter = 0;
+		}
+		
 		//Use Try/Catch to Handle Possible Exception
 		try
 		{	
@@ -269,6 +311,9 @@ public class SQLReadWriter
 			//Execute and close the Prepared Statement
 			sqlStatement.execute();
 			sqlStatement.close();
+			
+			//Increment connectionCounter
+			connectionCounter++;
 		}
 		//Catch a potential exception and PrintStackTrace if caught
 		catch(Exception e)
@@ -277,7 +322,5 @@ public class SQLReadWriter
 		}
 
 	}
-
-
 
 }

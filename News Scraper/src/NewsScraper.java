@@ -1,5 +1,4 @@
 import java.util.*;
-import java.sql.*;
 
 /**
  * <h1>News Scraper</h1>
@@ -20,9 +19,8 @@ public class NewsScraper
 		//Instantiate NewsAPIConnector
 		NewsAPIConnector newsConn = new NewsAPIConnector();
 		
-		//Instantiate SQLReadWriter and Connection
+		//Instantiate SQLReadWriter
 		SQLReadWriter sqlWriter = new SQLReadWriter("news_test", "jdbc:mysql://localhost:3306");
-		Connection sqlConn = sqlWriter.connect();
 		
 		//----------------------------------------------------------------------------------------------------
 		// NewsAPI to DB
@@ -40,7 +38,7 @@ public class NewsScraper
 		{
 			try
 			{
-				sqlWriter.writeArticle(article, "article", sqlConn);
+				sqlWriter.writeArticle(article, "article");
 			}
 			catch(Exception e)
 			{
@@ -56,7 +54,7 @@ public class NewsScraper
 		System.out.println("Getting All Articles from Database...");
 		
 		//Reset articleArray to ArrayList of Articles from SQLReadWriter readArticles Method
-		articleArray = sqlWriter.readArticles("article", sqlConn);
+		articleArray = sqlWriter.readArticles("article");
 		
 		//Instantiate an Iterator for Comparisons
 		int compareIndex = 0;
@@ -67,7 +65,7 @@ public class NewsScraper
 		while(compareIndex < articleArray.size())
 		{
 			//Get SQL IDs of Matching Articles using getMatches method
-			ArrayList<Integer> matchIDs = sqlWriter.getMatches(articleArray.get(compareIndex), "article", sqlConn);
+			ArrayList<Integer> matchIDs = sqlWriter.getMatches(articleArray.get(compareIndex), "article");
 			
 			//Declare an ArrayList to hold ArrayList indices of matched Article Objectss
 			ArrayList<Integer> matchIndices = new ArrayList<>();
@@ -83,7 +81,7 @@ public class NewsScraper
 			{
 				//Generate a Topic with the generateTopic method, then write that Topic to the DB
 				articleArray.get(compareIndex).generateTopic();
-				sqlWriter.addArticleTopic(articleArray.get(compareIndex), "article", sqlConn);
+				sqlWriter.addArticleTopic(articleArray.get(compareIndex), "article");
 				
 				//Sort the MatchIndices ArrayList in descending order
 				Collections.sort(matchIndices);
@@ -95,7 +93,7 @@ public class NewsScraper
 					//For each Matched Article, Set the Topic to the Generated Topic
 					//Write that topic to the Appropriate Article (by ID) in the Database
 					articleArray.get(i).setTopic(articleArray.get(compareIndex).getTopic());
-					sqlWriter.addArticleTopic(articleArray.get(i), "article", sqlConn);
+					sqlWriter.addArticleTopic(articleArray.get(i), "article");
 					
 					//Remove that Article from the ArrayList of articles to speed up later iterations
 					articleArray.remove(i);
@@ -105,22 +103,6 @@ public class NewsScraper
 			else
 				compareIndex++;
 			
-			//Every 50 Comparisons, Close the SQL Connection and reinstantiate
-			//This fixes Memory Usage Bug
-			if(compareIndex % 50 == 0)
-			{
-				try
-				{
-					sqlConn.close();
-					sqlConn = sqlWriter.connect();
-				}
-				catch(Exception e)
-				{
-					e.printStackTrace();
-					//In Case of Exception, end this run
-					break;
-				}
-			}
 		}//End of While Loop
 		
 		System.out.println("Finished.");
