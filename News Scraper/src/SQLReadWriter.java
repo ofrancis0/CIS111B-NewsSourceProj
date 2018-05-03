@@ -18,8 +18,8 @@ public class SQLReadWriter
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
 	
-	protected final String USERNAME = "javauser";
-	protected final String PASSWORD = "Cis111B!";
+	protected final String USERNAME = "XXXXX";
+	protected final String PASSWORD = "XXXXX";
 	protected final String DRIVERNAME="com.mysql.jdbc.Driver";
 	protected String databaseName, databaseAddress;
 	protected Connection sqlConnection;
@@ -32,7 +32,7 @@ public class SQLReadWriter
 	/**
 	 * The SQLReadWriter Constructor accepts a String argument for the SQL Database Name and Address, 
 	 * and initializes the respective fields with those arguments. It also instantiates a Connection object
-	 * with the connect method.
+	 * with the connect method, and initializes the connectionCounter field to 0.
 	 * 
 	 * @param databaseName A String containing the SQL Database's name.
 	 * @param databaseAddress A String containing the SQL Database's address.
@@ -54,8 +54,6 @@ public class SQLReadWriter
 	 * The connect method establishes a connection to a local SQL database based on the current databaseAddress 
 	 * field. It closes any open connection and reinstantiates a SQL Connection object, assigning it to the 
 	 * sqlConnection field.
-	 * 
-	 * @return A Connection object from java.sql, for use with Read and Write methods.
 	 */
 	
 	public void connect()
@@ -91,7 +89,6 @@ public class SQLReadWriter
 	 * initialized to the data from the table.
 	 * 
 	 * @param tableName A String containing the name of the SQL Table
-	 * @param sqlConnection A Connection object associated with java.sql, containing the connection to read from
 	 * 
 	 * @return An ArrayList of Article Objects representing the articles from the table.
 	 */
@@ -157,11 +154,12 @@ public class SQLReadWriter
 	
 	/**
 	 * The getMatches method accepts an Article Object argument and runs an SQL query for matches on its title
-	 * and description, returning an ArrayList of URLs that scored appropriate matches from the SQL query.
+	 * and description, returning an ArrayList of article IDs that scored appropriate matches from the SQL query.
 	 * 
 	 * @param article An Article Object to compare against the Database for matches
 	 * @param tableName The name of the SQL Table to Query
-	 * @param sqlConnection An SQL Connection object representing the connection to the relevant database.
+	 * 
+	 * @return An ArrayList of Article IDs that were matched with the Article parameter.
 	 */
 	
 	public ArrayList<Integer> getMatches(Article article, String tableName)
@@ -230,12 +228,10 @@ public class SQLReadWriter
 	
 	/**
 	 * The writeArticle method accepts an Article Object argument and writes its data to the database,
-	 * accepting a String argument for the SQL table name and Connection argument for the SQL connection.
+	 * accepting a String argument for the SQL table name.
 	 * 
 	 * @param article An Article Object to write to the database
 	 * @param tableName A String containing the name of the SQL table to write to.
-	 * @param sqlConnection A Connection object from java.sql representing the connection to the
-	 * SQL database to write to.
 	 */
 	
 	public void writeArticle(Article article, String tableName) throws Exception
@@ -280,7 +276,6 @@ public class SQLReadWriter
 	 * 
 	 * @param article An Article object to read the topic field from.
 	 * @param tableName Name of the table in the database
-	 * @param sqlConnection The SQL Connection Object representing the connection to the relevant DB.
 	 */
 	public void addArticleTopic (Article article, String tableName)
 	{

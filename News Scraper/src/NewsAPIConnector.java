@@ -9,7 +9,8 @@ import com.google.gson.*;
 /**
  * <h1>News API Connector</h1>
  * The NewsAPIConnector class contains constructors and methods for connecting to NewsAPI
- * and returning arrays of JSON Elements that represent individual news articles. 
+ * to receive arrays of JSON Elements, then convert that JSON output into arrays of
+ * Article objects from the Article class. 
  *
  *@author Aaron Wile, Chrissa LaPorte, Oriel Francis
  *@since 13 April 2018
@@ -40,9 +41,9 @@ public class NewsAPIConnector
 	/**
 	 * The default NewsAPIConnector constructor creates a NewsAPIConnector object with currentTimeStamp
 	 * set relative to the time at which the object is instantiated. Additionally, previousTimeStamp is set to
-	 * to midnight of the current day, and pageNumber is set to 1. The constructor then combines these fields
-	 * into a URL for connecting to newsAPI. This is accomplished through the class's updateTime and updateURL
-	 * methods.
+	 * to 1 hour prior, pageNumber is set to 1, and apiIndex is set to 0. The constructor then combines these 
+	 * fields into a URL for connecting to newsAPI. This is accomplished through the class's updateTime and 
+	 * updateURL methods.
 	 */
 	
 	public NewsAPIConnector()
@@ -67,16 +68,13 @@ public class NewsAPIConnector
 	
 	/**
 	 * The updateTimeStamp method resets the currentTimeStamp String to the current Time and Date,
-	 * formatted in ISO 8601 for NewsAPI, and replaces the previousTimeStamp String with
-	 * the previous currentTimeStamp String. If the currentTimeStamp string is null (as in the
-	 * case of an initial instantiation), previousTimeStamp is set to midnight of the current
-	 * day.
+	 * formatted in ISO 8601 for NewsAPI, and sets the previousTimeStamp string to 1 hour prior.
 	 */
 	
 	public void updateTimeStamp()
 	{
 		//Create a SimpleDateFormat object with formatting settings for ISO 8601
-		//Format: "2018-04-13T06:23:00" 
+		//Format: "2018-04-13T06:23:00Z" 
 		//Set the TimeZone to UTC with TimeZone class
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		TimeZone tz = TimeZone.getTimeZone("UTC");

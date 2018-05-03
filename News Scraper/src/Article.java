@@ -54,7 +54,6 @@ public class Article
 		JsonObject jsonObject = jsonElement.getAsJsonObject();
 		
 		//Use Gson get method to retrieve relevent data from JSON Article
-		//Use replaceAll method to delete punctuation from Title (for now)
 		title = jsonObject.get("title").toString();
 		source = jsonObject.get("source").getAsJsonObject().get("name").toString();
 		date = jsonObject.get("publishedAt").toString().replaceAll("\"", "");
