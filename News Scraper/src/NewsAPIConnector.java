@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.HttpsURLConnection;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
@@ -8,7 +9,8 @@ import com.google.gson.*;
 /**
  * <h1>News API Connector</h1>
  * The NewsAPIConnector class contains constructors and methods for connecting to NewsAPI
- * and returning arrays of JSON Elements that represent individual news articles. 
+ * to receive arrays of JSON Elements, then convert that JSON output into arrays of
+ * Article objects from the Article class. 
  *
  *@author Aaron Wile, Chrissa LaPorte, Oriel Francis
  *@since 13 April 2018
@@ -19,18 +21,18 @@ public class NewsAPIConnector
 	//------------------------------------------------------------------------------------------------------------
 	// Instance Variables
 	//------------------------------------------------------------------------------------------------------------
-	
-	private final String API_KEY = "19f78480cff94fc3bcebcdc57d3c5c70";
+
 	private final String URL_BASE = "http://newsapi.org/v2/everything?language=en&sources=";
 	
-	private final String[] SOURCES = {"abc-news", "associated-press", "bbc-news", "bloomberg", "breitbart-news", 
-									  "business-insider", "cnbc", "cnn", "fortune", "fox-news", 
-									  "msnbc", "newsweek", "politico", "reuters", "the-economist", 
-									  "the-huffington-post", "the-new-york-times", "the-wall-street-journal", 
-									  "the-washington-post", "usa-today"};
+	private final String[] API_KEYS = {"19f78480cff94fc3bcebcdc57d3c5c70", "4e131f24ad254086a57351641b8ba21d",
+									   "a513991c58ac4bc58031b3bc981c4d5b", "6c324fcf238649d7a2d4019cafb64b7e",
+									   "21d4cdd3f4f24bb3a3db7c34664daa72"};
+	
+	private final String[] SOURCES = {"associated-press", "bbc-news", "breitbart-news", 
+									  "fox-news", "cnn", "the-new-york-times"};
 	
 	private String url, currentTimeStamp, previousTimeStamp;
-	private int pageNumber;
+	private int pageNumber, apiIndex;
 	
 	//------------------------------------------------------------------------------------------------------------
 	// Constructor
@@ -39,15 +41,18 @@ public class NewsAPIConnector
 	/**
 	 * The default NewsAPIConnector constructor creates a NewsAPIConnector object with currentTimeStamp
 	 * set relative to the time at which the object is instantiated. Additionally, previousTimeStamp is set to
-	 * to midnight of the current day, and pageNumber is set to 1. The constructor then combines these fields
-	 * into a URL for connecting to newsAPI. This is accomplished through the class's updateTime and updateURL
-	 * methods.
+	 * to 1 hour prior, pageNumber is set to 1, and apiIndex is set to 0. The constructor then combines these 
+	 * fields into a URL for connecting to newsAPI. This is accomplished through the class's updateTime and 
+	 * updateURL methods.
 	 */
 	
 	public NewsAPIConnector()
 	{
 		//Initialize pageNumber to 1
 		pageNumber = 1;
+		
+		//Initialize apiIndex to 0
+		apiIndex = 0;
 		
 		//Use updateTime method to generate current and previous Time Stamps
 		this.updateTimeStamp();
@@ -58,47 +63,33 @@ public class NewsAPIConnector
 	}
 	
 	//------------------------------------------------------------------------------------------------------------
-	// Helper Methods
+	// Field Update Methods
 	//------------------------------------------------------------------------------------------------------------
 	
 	/**
 	 * The updateTimeStamp method resets the currentTimeStamp String to the current Time and Date,
-	 * formatted in ISO 8601 for NewsAPI, and replaces the previousTimeStamp String with
-	 * the previous currentTimeStamp String. If the currentTimeStamp string is null (as in the
-	 * case of an initial instantiation), previousTimeStamp is set to midnight of the current
-	 * day.
+	 * formatted in ISO 8601 for NewsAPI, and sets the previousTimeStamp string to 1 hour prior.
 	 */
 	
 	public void updateTimeStamp()
 	{
 		//Create a SimpleDateFormat object with formatting settings for ISO 8601
-		//Format: "2018-04-13T06:23:00" 
+		//Format: "2018-04-13T06:23:00Z" 
 		//Set the TimeZone to UTC with TimeZone class
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		TimeZone tz = TimeZone.getTimeZone("UTC");
 		dateFormat.setTimeZone(tz);
-		
-		//Set previousTimeStamp to currentTimeStamp if the latter is not null.
-		if(currentTimeStamp != null)
-			previousTimeStamp = currentTimeStamp;
 		
 		//Create a Date Object with the default constructor, which represents the current time and date.
 		Date dateObj = new Date();
 				
 		//Parse a NewsAPI relevant currentTimeStamp String from the Date Object using SimpleDateFormat. 
 		currentTimeStamp = dateFormat.format(dateObj).toString(); 
-				
-		//If previousTimeStamp is still null, set to midnight of the current day
-		if(previousTimeStamp == null)
-		{
-			//Set Date Object to midnight of current day.
-			dateObj.setHours(0);
-			dateObj.setMinutes(0);
-			dateObj.setSeconds(0);
-			
-			//Parse a NewsAPI relevant previousTimeStamp String from the Date Object using SimpleDateFormat
-			previousTimeStamp = dateFormat.format(dateObj).toString();
-		}
+		
+		//Set Previous Time Stamp to 1 Hour before Current time
+		dateObj.setHours(dateObj.getHours() - 1);
+		previousTimeStamp = dateFormat.format(dateObj).toString();
+		
 	}
 	
 	/**
@@ -131,10 +122,13 @@ public class NewsAPIConnector
 		url += "&from=" + previousTimeStamp;
 		url += "&to=" + currentTimeStamp;
 		
-		//Add API_KEY for authentication
-		url += "&apiKey=" + API_KEY;
+		//Add API_KEY for authentication, using current apiIndex to select from available keys
+		url += "&apiKey=" + API_KEYS[apiIndex];
 	}
 	
+	//------------------------------------------------------------------------------------------------------------
+	// Connection and Input Reader Methods
+	//------------------------------------------------------------------------------------------------------------
 	
 	/**
 	 * The connect method establishes a connection to newsAPI based on the current url field
@@ -145,100 +139,145 @@ public class NewsAPIConnector
 	
 	public InputStreamReader connect()
 	{	
-		//Use Try/Catch to Handle Possible IOException
+		//Use Try/Catch to Handle Possible IOException or HTTP Error
 		try
 		{
 			//Open Connection
 			URL newsURL  = new URL(url);
-			URLConnection newsConnection = newsURL.openConnection();
-						
-			//Initialize InputStreamReader
-			InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream());
+			HttpURLConnection newsConnection = (HttpURLConnection)newsURL.openConnection();
 			
-			return newsReader;
+			//Set Request Method to Get
+			newsConnection.setRequestMethod("GET");
+			
+			//Get Http Response Code
+			int responseCode = newsConnection.getResponseCode();
+			
+			//Handle Return Based On Response Code
+			
+			//If Connection Worked Correctly
+			if(responseCode == 200) 
+			{		
+				//Initialize InputStreamReader
+				InputStreamReader newsReader = new InputStreamReader(newsConnection.getInputStream());
+			
+				return newsReader;
+			}
+			//If Too Many Requests Have Been Made with this API key
+			else 
+			{
+				System.out.println(responseCode);
+				if(apiIndex < 4) //If All keys have not been exhuasted
+				{
+					apiIndex++; //Move to next key
+					this.updateURL(); //Update URL with new key
+					return this.connect(); //Recursively call connect method with updated key
+				}
+				else //If all keys exhausted
+				{
+					apiIndex = 0; //Reset apiIndex to 0;
+					return null; //Return null
+				}
+			}
 		}
 		catch(IOException e)
 		{
-			//Return null if Exception is thrown
+			//Return null if IOException is thrown
+			e.printStackTrace();
 			return null;
 		}
 	}
 	
 	/**
-	 * The getArticleArray method returns a JsonArray of Articles based on the NewsAPIConnection
+	 * The getArticleArray method returns an ArrayList of Articles based on the NewsAPIConnection
 	 * object's current url field.
 	 *
-	 *@return A JsonArray populated by articles from newsAPI based on the current url field.
+	 *@return An ArrayList populated by Article objects based on the data from newsAPI relative
+	 *to the the current url field.
 	 */
 	
-	public Article[] getArticleArray()
+	public ArrayList<Article> getArticleArray()
 	{		
-		//Create InputStreamReader from current url with connect method
-		InputStreamReader newsReader = this.connect();
+		//Declare Array to Hold Article objects
+		ArrayList<Article> returnArray = null;
 		
-		//Use Gson classes to read JSON from source
-		//Use connect Method to receive InputStreamReader from current url field
-		JsonParser newsParser = new JsonParser();
-		JsonObject jsonObject = newsParser.parse(newsReader).getAsJsonObject();
-		
-		//Close InputStreamReader
+		//Use Try/Catch to Handle IOException or NullPointerException from connect method
 		try
 		{
-		newsReader.close();
-		}
-		catch(IOException e){}
+			//Create InputStreamReader from current url with connect method
+			InputStreamReader newsReader = this.connect();
 		
-		//Parse "Total Results" to determine how many page "flips" are necessary for this query
-		//PageFlips = Number of Pages at 100 Results Each. Round Up for Integer Division
-		int totalResults = jsonObject.get("totalResults").getAsInt();
-		int pageFlips;
-		if(totalResults % 100 == 0)
-			pageFlips = totalResults / 100;
-		else
-			pageFlips = totalResults / 100 + 1;
+			//Use Gson classes to read JSON from source
+			//Use connect Method to receive InputStreamReader from current url field
+			JsonParser newsParser = new JsonParser();
+			JsonObject jsonObject = newsParser.parse(newsReader).getAsJsonObject();
 		
-		//Create JsonArray of Articles from first Page
-		JsonArray jsonArray = jsonObject.get("articles").getAsJsonArray();
+			//Close InputStreamReader
+			newsReader.close();
+		
+			//Parse "Total Results" to determine how many page "flips" are necessary for this query
+			//PageFlips = Number of Pages at 100 Results Each. Round Up for Integer Division
+			int totalResults = jsonObject.get("totalResults").getAsInt();
+			int pageFlips;
+			if(totalResults % 100 == 0)
+				pageFlips = totalResults / 100;
+			else
+				pageFlips = totalResults / 100 + 1;
+			
+			if(pageFlips > 100)
+				pageFlips = 100;
+		
+			//Create JsonArray of Articles from first Page
+			JsonArray jsonArray = jsonObject.get("articles").getAsJsonArray();
 		
 
-		//Add each Page of JSON output from NewsAPI to jsonArray
-		for(pageNumber = 2; pageNumber <= pageFlips; pageNumber++)
-		{
-			//Get JsonObject of current page
-			//Use udpateURL method to update pageNumber in url, and connect to renew connection
-			this.updateURL();
-			InputStreamReader loopReader = this.connect();
-			JsonObject loopObject = newsParser.parse(loopReader).getAsJsonObject();
-			
-			//Create new JsonArray from new JsonObject's Articles
-			JsonArray loopArray = loopObject.get("articles").getAsJsonArray();
-			
-			//Add all JsonElements from current iteration to original JsonArray
-			jsonArray.addAll(loopArray);
-			
-			//Close this iteration's InputStreamReader
-			try
+			//Add each Page of JSON output from NewsAPI to jsonArray
+			for(pageNumber = 2; pageNumber < pageFlips; pageNumber++)
 			{
-			loopReader.close();
-			}
-			catch(IOException e){}
-		}
+				//Get JsonObject of current page
+				//Use udpateURL method to update pageNumber in url, and connect to renew connection
+				this.updateURL();
+				InputStreamReader loopReader = this.connect();
+				JsonObject loopObject = newsParser.parse(loopReader).getAsJsonObject();
+			
+				//Create new JsonArray from new JsonObject's Articles
+				JsonArray loopArray = loopObject.get("articles").getAsJsonArray();
+			
+				//Add all JsonElements from current iteration to original JsonArray
+				jsonArray.addAll(loopArray);
+			
+				//Close this iteration's InputStreamReader
+				loopReader.close();
 
-		//Reset pageNumber to 1 for next method call.
-		pageNumber = 1;
+			}
+
+			//Reset pageNumber to 1 for next method call.
+			pageNumber = 1;
 		
-		//Instantiate Article Array to hold each Article
-		Article[] returnArray = new Article[totalResults];
+			//Instantiate Article Array to hold each Article
+			returnArray = new ArrayList<Article>();
 		
-		//Use Article class's JsonElement arg constructor to instantiate Article objects
-		//Populate returnArray with said Article objects
-		for(int index = 0; index < totalResults; index++)
-			returnArray[index] = new Article(jsonArray.get(index));
+			//Use Article class's JsonElement arg constructor to instantiate Article objects
+			//Populate returnArray with said Article objects
+			for(int index = 0; index < jsonArray.size(); index++)
+				returnArray.add(new Article(jsonArray.get(index)));
 		
-		//Return resulting array of Article Objects
+		}
+		//Catch NullPointerException if Connect Method returns Null, return empty Array
+		catch(NullPointerException e)
+		{
+			e.printStackTrace();
+			pageNumber = 1;
+			return new ArrayList<Article>();
+		}
+		//If IOException is Caught from failing to Close Connections, printStackTrace
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		//If no Exception is thrown, return Array of Article Objects
 		return returnArray;
 	}
-		
 }
 		
 		
