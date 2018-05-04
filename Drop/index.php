@@ -19,6 +19,7 @@ $result;
 //$result2='';
 $numRows;
 
+
 $conn = new mysqli($dbServ, $dbUser, $dbPass, $dbName);
 
 //if there is an error with connectivity this conditional statement will inform.
@@ -29,14 +30,22 @@ if ($conn->connect_errno) {
     //return $conn;
 }
 
+// Set character set from default latin1 to utf8 for successful translation of dbase characters.
+$conn->set_charset("utf8");
+printf("Initial character set: %s\n", $conn->character_set_name()). "<br><br>";
 
 //function getDropData() {
 //Our select statement. This will retrieve the data that we want.
 //$sql = "SELECT title, author, description, website_name, url FROM "
 //        . "news_item ORDER BY title ASC";
-$sql = "SELECT DISTINCT topic FROM dummy_article ORDER BY topic ASC";
+//$sql = "SELECT DISTINCT topic FROM dummy_article ORDER BY topic ASC";
+/*$sql = "SELECT DISTINCT a1.topic FROM news_test.dummy_article a1 INNER JOIN (SELECT topic FROM"
+. " news_test.dummy_article GROUP BY topic ORDER BY COUNT(*) DESC LIMIT 5) AS a2 ON a1.topic = a2.topic"
+. " ORDER BY a1.topic;";
+*/
+$sql = "SELECT DISTINCT article.topic FROM news_test.article WHERE article.topic " .
+       "IS NOT NULL and article.topic <>'' ORDER BY article.topic;"
 $sqlTot = "SELECT * FROM dummy_article ORDER BY topic ASC";
-
 
 /*
  * use the connect() method from the DBConn class to connect to database,
