@@ -1,0 +1,14 @@
+CREATE TABLE `article` (
+ `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ `title` varchar(255) DEFAULT NULL,
+ `sources` varchar(50) DEFAULT NULL,
+ `pubdate` timestamp NULL DEFAULT NULL,
+ `description` text,
+ `url` varchar(250) NOT NULL,
+ `topic` varchar(500) DEFAULT NULL,
+ PRIMARY KEY (`id`),
+ UNIQUE KEY `url` (`url`),
+ UNIQUE KEY `title_2` (`title`),
+ UNIQUE KEY `description` (`description`(255)),
+ FULLTEXT KEY `title` (`title`,`description`)
+) ENGINE=InnoDB AUTO_INCREMENT=9901 DEFAULT CHARSET=utf8
